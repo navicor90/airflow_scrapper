@@ -6,6 +6,20 @@ import locale
 # $ sudo locale-gen es_ES.UTF-8
 locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
 
+def search_url(property_type: PropertyType, page:int):
+    page = str(page)
+    base_url = 'https://www.inmoclick.com.ar'
+    if property_type == PropertyType.LAND:
+        inmoclick_type = "lotes-y-terrenos"
+    elif property_type == PropertyType.HOUSE:
+        inmoclick_type = "casas"
+    else:
+        raise Exception(f"Property type {property_type} is not implemented yet")
+
+    params = "?favoritos=0&limit=48&prevEstadoMap=&provincias=21&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=&page="
+    url = f'{base_url}/inmuebles/venta/{inmoclick_type}/mendoza{params}{page}'
+    return url
+
 
 class PropertyType(Enum):
     LAND = 'land'
