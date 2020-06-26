@@ -33,8 +33,8 @@ services:
             - ./dags:/usr/local/airflow/dags
             # Uncomment to include custom plugins
             - ./plugins:/usr/local/airflow/plugins
-            # Selenium scripts 
-            - ./controllers:/usr/local/airflow/controllers
+            # App files 
+            - ./app:/usr/local/airflow/app
             # Selenium downloads
             - downloads:/usr/local/airflow/downloads
         ports:
@@ -67,8 +67,8 @@ services:
             - ./dags:/usr/local/airflow/dags
             # Uncomment to include custom plugins
             - ./plugins:/usr/local/airflow/plugins
-            # Selenium scripts 
-            - ./controllers:/usr/local/airflow/controllers
+            # App files 
+            - ./app:/usr/local/airflow/app
             # Selenium downloads
             - downloads:/usr/local/airflow/downloads
         environment:
@@ -93,8 +93,8 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
             # Uncomment to include custom plugins
             - ./plugins:/usr/local/airflow/plugins
-            # Selenium scripts 
-            - ./controllers:/usr/local/airflow/controllers
+            # App files 
+            - ./app:/usr/local/airflow/app
             # Selenium downloads
             - downloads:/usr/local/airflow/downloads
         environment:

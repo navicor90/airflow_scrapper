@@ -7,11 +7,14 @@ from airflow import DAG
 from airflow.operators.selenium_plugin import SeleniumOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
-from controllers.inmoclick import InmoclickSearchPage, PropertyType
-from controllers.utils import soup_from_url, save, read_soup
-from services.property_service import properties_post
+from app.utils import soup_from_url, save, read_soup
+from app.services.inmoclick_service import InmoclickSearchPage, search_url
+from app.services.property_service import post_property
+from app.models import PropertyType
 import logging as log
 import pandas as pd
+from datetime import datetime,timedelta
+from os import listdir
 
 
 default_args = {
@@ -33,10 +36,10 @@ default_args = {
 dag = DAG("inmoclick_scrapper", default_args=default_args, schedule_interval=timedelta(60*24))
 
 
-def get_found_pages(driver):
+def get_search_pages(driver, property_type:PropertyType):
     """ """
     p = 1
-    url = search_url(property_type=PropertyType.LAND, page=p)
+    url = search_url(property_type=property_type, page=p)
     soup = soup_from_url(driver, url)
     save(filename=str(p), soup=soup)
 
@@ -46,49 +49,55 @@ def get_found_pages(driver):
         url = search_url(property_type=PropertyType.LAND, page=p)
         log.info(url)
 
-        #soup = soup_content_from_url(driver, url)
+        # soup = soup_content_from_url(driver, url)
         # save(str(p), soup)
 
-    #log.info(isp.search_items()[0].to_dict())
+    # log.info(isp.search_items()[0].to_dict())
 
 
-def csv_data_from_found_pages():
+def csv_data_from_search_pages(property_type:PropertyType):
     """ """
     found_items = []
     files = listdir('soups')
     for f in files:
-        soup = read_soup(f)
-        isp = InmoclickSearchPage(soup, PropertyType.LAND)
-        for fi in isp.found_items():
+        soup = read_soup(filename=f)
+        isp = InmoclickSearchPage(soup=soup, property_type=property_type)
+        for fi in isp.search_items():
             found_items.append(fi.to_dict())
     df = pd.DataFrame(found_items)
     df.to_csv('dataframe.csv', index=False)
 
-def push_properties():
+
+def push_properties(property_type:PropertyType):
     """ """
     df = pd.read_csv('dataframe.csv')
     for i,row in df.iterrows():
         property_dict = row.to_dict()
-        property_dict['property_type'] = PropertyType.LAND
-        properties_post(property_dict)
+        property_dict['property_type'] = property_type
+        response = post_property(property_dict)
+        if  not (200 <= response.status_code < 300):
+            raise Exception(f"Server error, code:{response.status_code} response:{response.text}")
+
 
 start = DummyOperator(
     task_id='start',
     dag=dag)
 
-t_get_found_pages = SeleniumOperator(
-    script=get_found_pages,
-    script_args=[],
-    task_id='get_found_pages',
+t_get_search_pages = SeleniumOperator(
+    script=get_search_pages,
+    script_args=[PropertyType.LAND],
+    task_id='get_search_pages',
     dag=dag)
 
-t_csv_data_from_found_pages = PythonOperator(
-    python_callable=csv_data_from_found_pages,
-    task_id='csv_data_from_found_pages',
+t_csv_data_from_search_pages = PythonOperator(
+    python_callable=csv_data_from_search_pages,
+    op_kwargs={"property_type":PropertyType.LAND},
+    task_id='csv_data_from_search_pages',
     dag=dag)
 
 t_push_properties = PythonOperator(
     python_callable=push_properties,
+    op_kwargs={"property_type":PropertyType.LAND},
     task_id='push_properties',
     dag=dag)
 
@@ -96,7 +105,8 @@ end = DummyOperator(
     task_id='end',
     dag=dag)
 
-start >> t_get_found_pages
-t_get_found_pages >> t_csv_data_from_search_pages
-t_csv_data_from_search_pages >> push_properties
-push_properties >> end
+
+start >> t_get_search_pages
+t_get_search_pages >> t_csv_data_from_search_pages
+t_csv_data_from_search_pages >> t_push_properties
+t_push_properties >> end

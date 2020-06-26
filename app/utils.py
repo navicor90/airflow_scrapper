@@ -8,14 +8,21 @@ def soup_from_url(driver, url):
     content = driver.page_source
     return BeautifulSoup(content, features="lxml")
 
+def _soup_filename(filename):
+    if filename.endswith('.html'):
+        filename = "soups/"+filename
+    else:
+        filename = "soups/"+filename+".html"
+    return filename
+
 def save(filename, soup):
-    filename = "soups/" + filename + ".html"
+    filename = _soup_filename(filename)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w") as file:
         file.write(str(soup))
 
 def read_soup(filename):
-    filename = "soups/"+filename+".html"
+    filename = _soup_filename(filename)
     with open(filename, "r") as f:
         contents = f.read()
         soup = BeautifulSoup(contents, 'lxml')

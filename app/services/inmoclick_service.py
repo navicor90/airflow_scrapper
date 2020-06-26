@@ -1,30 +1,31 @@
-from enum import Enum
+from app.models import PropertyType
 from urllib.parse import urlparse
+from datetime import datetime
 import locale
 
 # $ sudo locale-gen es_ES
 # $ sudo locale-gen es_ES.UTF-8
 locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
 
+inmoclick_property_map = {PropertyType.LAND:"lotes-y-terrenos",
+                          PropertyType.HOUSE:"casas"}
+
+
+def to_inmoclick_property_type(property_type: PropertyType):
+    try:
+        return inmoclick_property_map[property_type]
+    except:
+        raise Exception(f"Property type {property_type} not supported yet")
+
+
 def search_url(property_type: PropertyType, page:int):
     page = str(page)
     base_url = 'https://www.inmoclick.com.ar'
-    if property_type == PropertyType.LAND:
-        inmoclick_type = "lotes-y-terrenos"
-    elif property_type == PropertyType.HOUSE:
-        inmoclick_type = "casas"
-    else:
-        raise Exception(f"Property type {property_type} is not implemented yet")
+    inmoclick_type = to_inmoclick_property_type(property_type)
 
     params = "?favoritos=0&limit=48&prevEstadoMap=&provincias=21&precio%5Bmin%5D=&precio%5Bmax%5D=&moneda=1&sup_cubierta%5Bmin%5D=&sup_cubierta%5Bmax%5D=&sup_total%5Bmin%5D=&sup_total%5Bmax%5D=&page="
     url = f'{base_url}/inmuebles/venta/{inmoclick_type}/mendoza{params}{page}'
     return url
-
-
-class PropertyType(Enum):
-    LAND = 'land'
-    APARTMENT = 'apartment'
-    HOUSE = 'house'
 
 
 class SearchItem(object):
@@ -131,6 +132,8 @@ class SearchItem(object):
         # Property brand
         property_dict['agency'] = self.agency()
         property_dict['property_type'] = self.property_type
+        property_dict['source_web'] = "inmoclick"
+        property_dict['scrapped_date'] = datetime.now()
 
         return property_dict
 
