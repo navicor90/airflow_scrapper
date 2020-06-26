@@ -7,17 +7,17 @@ USER = ""
 PASSWORD = ""
 
 def server_property_type(property_type:PropertyType):
-	serv_type = ""
-	if property_dict['property_type'] == PropertyType.LAND:
-		serv_type = "LA"
-	elif property_dict['property_type'] == PropertyType.HOUSE:
-		serv_type = "HO"
-	else:
-		raise Exception(f"Property type {property_type} not supported yet")
-	return serv_type
+    serv_type = ""
+    if property_dict['property_type'] == PropertyType.LAND:
+       serv_type = "LA"
+    elif property_dict['property_type'] == PropertyType.HOUSE:
+       serv_type = "HO"
+    else:
+       raise Exception(f"Property type {property_type} not supported yet")
+    return serv_type
 
 def properties_post(property_dict):
-	property_data = { 
+    property_data = { 
         "ref_id": property_dict['ref_id'],
         "district": property_dict['district'],
         "province": property_dict['province'],
@@ -30,5 +30,5 @@ def properties_post(property_dict):
         "description": property_dict['description'],
         "extra_json_info": property_dict,
         "property_type": server_property_type(property_dict['property_type'])}
-	r = requests.post(url=API_ENDPOINT, data=data, auth=HTTPBasicAuth(USER, PASSWORD))
-	return r.text()
+    r = requests.post(url=API_ENDPOINT, data=data, auth=HTTPBasicAuth(USER, PASSWORD))
+    return r.text()
