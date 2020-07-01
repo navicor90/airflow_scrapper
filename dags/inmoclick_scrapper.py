@@ -9,7 +9,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from app.utils import soup_from_url, save, read_soup
 from app.services.inmoclick_service import InmoclickSearchPage, search_url
-from app.services.property_service import post_property
+from app.services.property_service import post_property, post_properties_batch
 from app.models import PropertyType
 import logging as log
 import pandas as pd
@@ -49,10 +49,9 @@ def get_search_pages(driver, property_type:PropertyType):
         url = search_url(property_type=PropertyType.LAND, page=p)
         log.info(url)
 
-        # soup = soup_content_from_url(driver, url)
-        # save(str(p), soup)
+        soup = soup_from_url(driver, url)
+        save(str(p), soup)
 
-    # log.info(isp.search_items()[0].to_dict())
 
 
 def csv_data_from_search_pages(property_type:PropertyType):
@@ -71,13 +70,20 @@ def csv_data_from_search_pages(property_type:PropertyType):
 def push_properties(property_type:PropertyType):
     """ """
     df = pd.read_csv('dataframe.csv')
-    for i,row in df.iterrows():
-        property_dict = row.to_dict()
-        property_dict['property_type'] = property_type
-        response = post_property(property_dict)
-        if  not (200 <= response.status_code < 300):
+    df['property_type'] = property_type
+    properties_list = list(df.T.to_dict().values())
+    print(properties_list)
+    delta = 20
+    for i in range(0,len(properties_list), delta):
+        limit = i+delta
+        batch = properties_list[i:limit]
+        response = post_properties_batch(batch)
+        if response.status_code==409:
+            print(batch)
+            print(f"Duplicated properties, code:{response.status_code} response:{response.text}")
+        elif not (200 <= response.status_code < 300):
+            print(batch)
             raise Exception(f"Server error, code:{response.status_code} response:{response.text}")
-
 
 start = DummyOperator(
     task_id='start',

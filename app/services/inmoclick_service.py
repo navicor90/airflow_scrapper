@@ -133,7 +133,7 @@ class SearchItem(object):
         property_dict['agency'] = self.agency()
         property_dict['property_type'] = self.property_type
         property_dict['source_web'] = "inmoclick"
-        property_dict['scrapped_date'] = datetime.now()
+        property_dict['scrapped_date'] = datetime.today().strftime('%Y-%m-%d')
 
         return property_dict
 

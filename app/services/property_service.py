@@ -1,13 +1,16 @@
 import requests
 from requests.auth import HTTPBasicAuth
 from app.models import PropertyType
+import time
+import os
+HOST = os.environ['PROPERTIES_HOST']
+#HOST = "http://127.0.0.1:8000/
+USER = os.environ['PROPERTIES_USER']
+PASSWORD = os.environ['PROPERTIES_PASSWORD']
 
-API_ENDPOINT = "http://127.0.0.1:8000/properties/"
-USER = ""
-PASSWORD = ""
-
-server_property_map = {PropertyType.LAND:"LA",
-                       PropertyType.HOUSE:"HO"}
+server_property_map = {PropertyType.LAND:"FI",
+                       PropertyType.HOUSE:"HO",
+                       PropertyType.APARTMENT:"AP"}
 
 def to_server_property_type(property_type:PropertyType):
     try:
@@ -15,24 +18,56 @@ def to_server_property_type(property_type:PropertyType):
     except:
         raise Exception(f"Property type {property_type} not supported yet")       
 
+def create_property_data(property_dict):
+    prop = property_dict.copy()
+    prop['property_type'] = to_server_property_type(prop['property_type'])
+    if prop['amount'] != prop['amount']:# is nan
+        prop['amount'] = 0
+
+    if prop['currency'] != prop['currency']: # is nan
+        prop['currency'] = 0
+
+    property_data = { 
+        "ref_id": prop['ref_id'],
+        "district": prop['district'],
+        "province": prop['province'],
+        "currency": prop['currency'],
+        "amount": prop['amount'],
+        "price": prop['price'],
+        "url": prop['url'],
+        "source_web": prop['source_web'],
+        "scrapped_date": prop['scrapped_date'],
+        "description": prop['description'],
+        "extra_json_info": str(prop),
+        "property_type": prop['property_type']}
+    return property_data
 
 def post_property(property_dict):
-    property_data = { 
-        "ref_id": property_dict['ref_id'],
-        "district": property_dict['district'],
-        "province": property_dict['province'],
-        "currency": property_dict['currency'],
-        "amount": property_dict['amount'],
-        "price": property_dict['price'],
-        "url": property_dict['url'],
-        "source_web": property_dict['source_web'],
-        "scrapped_date": property_dict['scrapped_date'],
-        "description": property_dict['description'],
-        "extra_json_info": property_dict,
-        "property_type": to_server_property_type(property_dict['property_type'])}
+    time.sleep(5) # Avoid heroku rate limit
+    print(property_dict['ref_id'])
+    property_data = create_property_data(property_dict)
     headers = {'content-type': 'application/json'}
-    r = requests.post(url=API_ENDPOINT, 
-                      data=property_data, 
+    r = requests.post(url=HOST+"properties/", 
+                      json=property_data, 
                       auth=HTTPBasicAuth(USER, PASSWORD), 
-                      headers=headers)
-    return r.text() 
+                      headers=headers,
+                      verify=False,
+                      timeout=60)
+    return r
+
+def post_properties_batch(properties_batch):
+    time.sleep(5) # Avoid heroku rate limit
+    data_batch = []
+    print("BATCH to post:")
+    for p in properties_batch:
+        pd = create_property_data(p)
+        print(pd['ref_id'])
+        data_batch.append(pd)
+    headers = {'content-type': 'application/json'}
+    r = requests.post(url=HOST+"properties_batch/", 
+                      json=data_batch, 
+                      auth=HTTPBasicAuth(USER, PASSWORD), 
+                      headers=headers,
+                      verify=False,
+                      timeout=60)
+    return r

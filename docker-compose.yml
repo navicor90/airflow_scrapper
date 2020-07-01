@@ -37,6 +37,8 @@ services:
             - ./app:/usr/local/airflow/app
             # Selenium downloads
             - downloads:/usr/local/airflow/downloads
+        env_file:
+            - properties.env
         ports:
             - "8080:8080"
         command: webserver
@@ -79,6 +81,8 @@ services:
             # - POSTGRES_PASSWORD=airflow
             # - POSTGRES_DB=airflow
             # - REDIS_PASSWORD=redispass
+        env_file:
+            - properties.env
         command: scheduler
 
     worker:
@@ -104,6 +108,8 @@ services:
             # - POSTGRES_PASSWORD=airflow
             # - POSTGRES_DB=airflow
             # - REDIS_PASSWORD=redispass
+        env_file:
+            - properties.env
         networks:
             - default  
             - container_bridge
