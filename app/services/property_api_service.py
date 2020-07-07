@@ -4,19 +4,20 @@ from app.models import PropertyType
 import time
 import os
 HOST = os.environ['PROPERTIES_HOST']
-#HOST = "http://127.0.0.1:8000/
 USER = os.environ['PROPERTIES_USER']
 PASSWORD = os.environ['PROPERTIES_PASSWORD']
 
-server_property_map = {PropertyType.LAND:"FI",
-                       PropertyType.HOUSE:"HO",
-                       PropertyType.APARTMENT:"AP"}
+server_property_map = {PropertyType.LAND: "FI",
+                       PropertyType.HOUSE: "HO",
+                       PropertyType.APARTMENT: "AP"}
 
-def to_server_property_type(property_type:PropertyType):
+
+def to_server_property_type(property_type: PropertyType):
     try:
         return server_property_map[property_type]
     except:
         raise Exception(f"Property type {property_type} not supported yet")       
+
 
 def create_property_data(property_dict):
     prop = property_dict.copy()

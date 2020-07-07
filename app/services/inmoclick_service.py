@@ -7,8 +7,9 @@ import locale
 # $ sudo locale-gen es_ES.UTF-8
 locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
 
-inmoclick_property_map = {PropertyType.LAND:"lotes-y-terrenos",
-                          PropertyType.HOUSE:"casas"}
+inmoclick_property_map = {PropertyType.LAND: "lotes-y-terrenos",
+                          PropertyType.HOUSE: "casas",
+                          PropertyType.APARTMENT: "departamentos"}
 
 
 def to_inmoclick_property_type(property_type: PropertyType):
@@ -71,25 +72,42 @@ class SearchItem(object):
         return self.html_article.get("sup_c").strip()
 
     def bedrooms(self):
-        return self.html_article.find('span', attrs={'class': 'label-dormitorio'}).text.strip()
+        bedrooms = ""
+        span = self.html_article.find('span', attrs={'class': 'label-dormitorio'})
+        if span:
+            bedrooms = span.text.strip()
+        return bedrooms
 
-    def bathroom(self):
-        return self.html_article.find('span', attrs={'class': 'label-banio'}).text.strip()
+    def bathrooms(self):
+        bathrooms = ""
+        span = self.html_article.find('span', attrs={'class': 'label-banio'})
+        if span:
+            bathrooms = span.text.strip()
+        return bathrooms
 
     def has_gas(self):
-        classes = self.html_article.find('div', attrs={'class': 'icon-gas'}).get('class')
+        div = self.html_article.find('div', attrs={'class': 'icon-gas'})
+        if not div:
+            return ""
+        classes = div.get('class')
         if 'disable' in classes:
             return False
         return True
 
     def has_water(self):
-        classes = self.html_article.find('div', attrs={'class': 'icon-agua'}).get('class')
+        div = self.html_article.find('div', attrs={'class': 'icon-agua'})
+        if not div:
+            return ""
+        classes = div.get('class')
         if 'disable' in classes:
             return False
         return True
 
     def has_electricity(self):
-        classes = self.html_article.find('div', attrs={'class': 'icon-luz'}).get('class')
+        div = self.html_article.find('div', attrs={'class': 'icon-luz'})
+        if not div:
+            return ""
+        classes = div.get('class')
         if 'disable' in classes:
             return False
         return True
