@@ -2,7 +2,9 @@ import requests
 from requests.auth import HTTPBasicAuth
 from app.models import PropertyType
 import time
+import datetime
 import os
+
 HOST = os.environ['PROPERTIES_HOST']
 USER = os.environ['PROPERTIES_USER']
 PASSWORD = os.environ['PROPERTIES_PASSWORD']
@@ -10,6 +12,9 @@ PASSWORD = os.environ['PROPERTIES_PASSWORD']
 server_property_map = {PropertyType.LAND: "FI",
                        PropertyType.HOUSE: "HO",
                        PropertyType.APARTMENT: "AP"}
+
+MAIN_PROPERTY_INFO = ['ref_id', 'district', 'province', 'currency', 'amount', 'price', 'source_web',
+                          'scrapped_date', 'description', 'property_type']
 
 
 def to_server_property_type(property_type: PropertyType):
@@ -28,6 +33,15 @@ def create_property_data(property_dict):
     if prop['currency'] != prop['currency']: # is nan
         prop['currency'] = 0
 
+    extra_info = {}
+    for k in prop.keys():
+        # Avoid other nans
+        if prop[k] != prop[k]:
+            prop[k] = "null"
+        # Create extra info dict
+        if k not in MAIN_PROPERTY_INFO:
+            extra_info[k] = prop[k]
+
     property_data = { 
         "ref_id": prop['ref_id'],
         "district": prop['district'],
@@ -39,9 +53,10 @@ def create_property_data(property_dict):
         "source_web": prop['source_web'],
         "scrapped_date": prop['scrapped_date'],
         "description": prop['description'],
-        "extra_json_info": str(prop),
+        "extra_json_info": str(extra_info),
         "property_type": prop['property_type']}
     return property_data
+
 
 def post_property(property_dict):
     time.sleep(5) # Avoid heroku rate limit
@@ -49,12 +64,13 @@ def post_property(property_dict):
     property_data = create_property_data(property_dict)
     headers = {'content-type': 'application/json'}
     r = requests.post(url=HOST+"properties/", 
-                      json=property_data, 
+                      json=property_data,
                       auth=HTTPBasicAuth(USER, PASSWORD), 
                       headers=headers,
                       verify=False,
                       timeout=60)
     return r
+
 
 def post_properties_batch(properties_batch):
     time.sleep(5) # Avoid heroku rate limit
@@ -66,7 +82,7 @@ def post_properties_batch(properties_batch):
         data_batch.append(pd)
     headers = {'content-type': 'application/json'}
     r = requests.post(url=HOST+"properties_batch/", 
-                      json=data_batch, 
+                      json=data_batch,
                       auth=HTTPBasicAuth(USER, PASSWORD), 
                       headers=headers,
                       verify=False,

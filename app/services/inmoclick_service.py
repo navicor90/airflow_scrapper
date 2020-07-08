@@ -72,14 +72,14 @@ class SearchItem(object):
         return self.html_article.get("sup_c").strip()
 
     def bedrooms(self):
-        bedrooms = ""
+        bedrooms = "empty"
         span = self.html_article.find('span', attrs={'class': 'label-dormitorio'})
         if span:
             bedrooms = span.text.strip()
         return bedrooms
 
     def bathrooms(self):
-        bathrooms = ""
+        bathrooms = "empty"
         span = self.html_article.find('span', attrs={'class': 'label-banio'})
         if span:
             bathrooms = span.text.strip()
@@ -88,7 +88,7 @@ class SearchItem(object):
     def has_gas(self):
         div = self.html_article.find('div', attrs={'class': 'icon-gas'})
         if not div:
-            return ""
+            return "empty"
         classes = div.get('class')
         if 'disable' in classes:
             return False
@@ -97,7 +97,7 @@ class SearchItem(object):
     def has_water(self):
         div = self.html_article.find('div', attrs={'class': 'icon-agua'})
         if not div:
-            return ""
+            return "empty"
         classes = div.get('class')
         if 'disable' in classes:
             return False
@@ -106,7 +106,7 @@ class SearchItem(object):
     def has_electricity(self):
         div = self.html_article.find('div', attrs={'class': 'icon-luz'})
         if not div:
-            return ""
+            return "empty"
         classes = div.get('class')
         if 'disable' in classes:
             return False

@@ -47,7 +47,7 @@ def get_search_pages(driver, property_type: PropertyType):
     save(filename=str(p), soup=soup)
 
     isp = InmoclickSearchPage(soup, property_type)
-    pages_range = range(2, 3)#isp.max_page_number())
+    pages_range = range(2, isp.max_page_number())
     for p in pages_range:
         url = search_url(property_type=property_type, page=p)
         log.info(url)
@@ -71,12 +71,12 @@ def csv_data_from_search_pages(property_type: PropertyType):
         for fi in isp.search_items():
             found_items.append(fi.to_dict())
     df = pd.DataFrame(found_items)
-    df.to_csv('dataframe.csv', index=False)
+    df.to_csv(f'dataframe_{property_type.value}.csv', index=False)
 
 
 def push_properties(property_type: PropertyType):
     """ """
-    df = pd.read_csv('dataframe.csv')
+    df = pd.read_csv(f'dataframe_{property_type.value}.csv')
     df['property_type'] = property_type
     properties_list = list(df.T.to_dict().values())
     print(properties_list)
@@ -86,7 +86,6 @@ def push_properties(property_type: PropertyType):
         batch = properties_list[i:limit]
         response = post_properties_batch(batch)
         if response.status_code == 409:
-            print(batch)
             print(f"Duplicated properties, code:{response.status_code} response:{response.text}")
         elif not (200 <= response.status_code < 300):
             print(batch)
