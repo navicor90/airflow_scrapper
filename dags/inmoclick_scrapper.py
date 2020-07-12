@@ -3,11 +3,10 @@ Code that goes along with the Airflow located at:
 http://airflow.readthedocs.org/en/latest/tutorial.html
 """
 from airflow import DAG
-#from airflow.operators.bash_operator import BashOperator
 from airflow.operators.selenium_plugin import SeleniumOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
-from app.utils import soup_from_url, save, read_soup
+from app.utils import soup_from_url, read_soup
 from app.services.inmoclick_service import InmoclickSearchPage, search_url
 from app.services.property_api_service import post_properties_batch
 from app.models import PropertyType
@@ -43,8 +42,9 @@ def get_search_pages(driver, property_type: PropertyType):
     """ """
     p = 1
     url = search_url(property_type=property_type, page=p)
+    log.info(url)
     soup = soup_from_url(driver, url)
-    save(filename=str(p), soup=soup)
+    PropertyFilePersistence.local_save(property_type, str(p), soup)
 
     isp = InmoclickSearchPage(soup, property_type)
     pages_range = range(2, isp.max_page_number())
@@ -53,18 +53,18 @@ def get_search_pages(driver, property_type: PropertyType):
         log.info(url)
 
         soup = soup_from_url(driver, url)
-        save(str(p), soup)
+        PropertyFilePersistence.local_save(property_type, str(p), soup)
 
 
 def save_htmls_in_cloud(property_type: PropertyType):
     property_persistence = PropertyFilePersistence(file_service)
-    property_persistence.save_search_pages(property_type)
+    property_persistence.cloud_save_search_pages(property_type)
 
 
 def csv_data_from_search_pages(property_type: PropertyType):
     """ """
     found_items = []
-    files = listdir('soups')
+    files = PropertyFilePersistence.local_soups_files(property_type)
     for f in files:
         soup = read_soup(filename=f)
         isp = InmoclickSearchPage(soup=soup, property_type=property_type)
