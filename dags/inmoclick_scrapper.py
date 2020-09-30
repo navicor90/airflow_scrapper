@@ -25,7 +25,7 @@ default_args = {
     "email": ["airflow@airflow.com"],
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
+    "retries": 3,
     "retry_delay": timedelta(minutes=10),
     # 'queue': 'bash_queue',
     # 'pool': 'backfill',
@@ -111,7 +111,8 @@ for p in [PropertyType.LAND, PropertyType.HOUSE, PropertyType.APARTMENT]:
         script=get_search_pages,
         script_args=[p],
         task_id=f'get_search_pages_{str(p.value)}',
-        dag=dag)
+        dag=dag,
+        retries=1)
 
     t_start >> t_get_search_pages
 

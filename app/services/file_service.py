@@ -14,6 +14,7 @@ class S3CloudFileService(CloudFileService):
         aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY']
     )
 
+
     def save(self, full_filename, cloud_path):
         s3 = self.session.resource('s3')
         bucket = 'inmocore-properties'
