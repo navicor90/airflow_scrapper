@@ -20,6 +20,7 @@ The main flow:
 ### Create selenium docker image:
 
 `docker build -t docker_selenium -f Dockerfile-selenium .`
+
 `sudo chown ubuntu:ubuntu /var/run/docker.sock`
 
 ### Networks and shared volumes
