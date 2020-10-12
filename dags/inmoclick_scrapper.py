@@ -1,27 +1,21 @@
-"""
-Code that goes along with the Airflow located at:
-http://airflow.readthedocs.org/en/latest/tutorial.html
-"""
 from airflow import DAG
 from airflow.operators.selenium_plugin import SeleniumOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
-from app.utils import soup_from_url, read_soup
-from app.services.inmoclick_service import InmoclickSearchPage, search_url
-from app.services.property_api_service import post_properties_batch
-from app.models import PropertyType
-from app.services.file_service import S3CloudFileService
-from app.services.property_file_persistence import PropertyFilePersistence
+from app.inmoscrap.utils import soup_from_url, read_soup
+from app.inmoscrap.services.inmoclick_service import InmoclickSearchPage, search_url
+from app.inmoscrap.services.property_api_service import post_properties_batch
+from app.inmoscrap.models import PropertyType
+from app.inmoscrap.services.file_service import S3CloudFileService
+from app.inmoscrap.services.property_file_persistence import PropertyFilePersistence
 import logging as log
 import pandas as pd
-from datetime import datetime,timedelta
-from os import listdir
-
+from datetime import datetime, timedelta
 
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
-    "start_date": datetime(2015, 6, 1),
+    "start_date": datetime(2020, 6, 1),
     "email": ["airflow@airflow.com"],
     "email_on_failure": False,
     "email_on_retry": False,
@@ -33,8 +27,8 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-
-dag = DAG("inmoclick_scrapper", default_args=default_args, schedule_interval=timedelta(60*24))
+every_monday_and_wednesday_at_twelve = '0 12 * * 1,3'
+dag = DAG("inmoclick_scrapper", default_args=default_args, schedule_interval=every_monday_and_wednesday_at_twelve)
 file_service = S3CloudFileService()
 
 

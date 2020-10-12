@@ -1,4 +1,4 @@
-from app.models import PropertyType
+from app.inmoscrap.models import PropertyType
 from urllib.parse import urlparse
 from datetime import datetime
 import locale
