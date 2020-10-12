@@ -1,8 +1,7 @@
 import requests
 from requests.auth import HTTPBasicAuth
-from app.models import PropertyType
+from app.inmoscrap.models import PropertyType
 import time
-import datetime
 import os
 
 HOST = os.environ['PROPERTIES_HOST']

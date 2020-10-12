@@ -1,5 +1,5 @@
-from app.services.file_service import CloudFileService
-from app.models import PropertyType
+from app.inmoscrap.services.file_service import CloudFileService
+from app.inmoscrap.models import PropertyType
 import os
 from datetime import datetime
 
